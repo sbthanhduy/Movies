@@ -11,7 +11,7 @@ using Movies.Contracts.Responses;
 
 namespace Movies.API.Controllers
 {
-	[Authorize]
+	
 	[ApiController]
 	public class MoviesController : ControllerBase
 	{
@@ -75,6 +75,7 @@ namespace Movies.API.Controllers
 			return Ok(movies);
 		}
 
+		[Authorize("Admin")]
 		[HttpPut(ApiEndpoints.Movies.Update)]
 		public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateMovieRequest request
 			, CancellationToken token)
@@ -108,6 +109,7 @@ namespace Movies.API.Controllers
 			return Ok(response);
 		}
 
+		[Authorize("Admin")]
 		[HttpDelete(ApiEndpoints.Movies.Delete)]
 		public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken token)
 		{
