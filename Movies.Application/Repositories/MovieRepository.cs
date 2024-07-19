@@ -35,7 +35,9 @@ namespace Movies.Application.Repositories
 
 		public async Task<Movie?> GetBySlugAsync(string slug)
 		{
-			return await _dbContext.Movies.Include(m => m.Genres).FirstOrDefaultAsync(x => x.Slug == slug);
+			var movies = await _dbContext.Movies.Include(m => m.Genres).ToListAsync();
+			return movies.FirstOrDefault(x => x.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase));
+
 		}
 
 		public async Task<IEnumerable<Movie>> GetAllAsync()
