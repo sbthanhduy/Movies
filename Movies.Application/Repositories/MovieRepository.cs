@@ -1,4 +1,7 @@
-﻿using Movies.Application.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
+using Movies.Application.Data;
+using Movies.Application.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,45 +12,73 @@ namespace Movies.Application.Repositories
 {
 	public class MovieRepository : IMovieRepository
 	{
-		private readonly List<Movie> _movies = new();
+		private readonly MoviesDbContext _dbContext;
 
-		public Task<bool> CreateAsync(Movie movie)
+		public MovieRepository(MoviesDbContext dbContext)
 		{
-			_movies.Add(movie);
-			return Task.FromResult(true);
+			_dbContext = dbContext;
 		}
 
-		public Task<Movie?> GetByIdAsync(Guid id)
+		public async Task<bool> CreateAsync(Movie movie)
 		{
-			var movie = _movies.SingleOrDefault(x => x.Id == id);
-			return Task.FromResult(movie);
+
+			await _dbContext.Movies.AddAsync(movie);
+			return await _dbContext.SaveChangesAsync() > 0;
+
 		}
 
-		public Task<IEnumerable<Movie>> GetAllAsync()
+		public async Task<Movie?> GetByIdAsync(int id)
 		{
-			return Task.FromResult(_movies.AsEnumerable());
+			return await _dbContext.Movies.Include(m => m.Genres).FirstOrDefaultAsync(x => x.Id == id);
+
 		}
 
-		public Task<bool> UpdateAsync(Movie movie)
+		public async Task<Movie?> GetBySlugAsync(string slug)
 		{
-			var movieIndex = _movies.FindIndex(x => x.Id == movie.Id);
-			if (movieIndex == -1)
+			return await _dbContext.Movies.Include(m => m.Genres).FirstOrDefaultAsync(x => x.Slug == slug);
+		}
+
+		public async Task<IEnumerable<Movie>> GetAllAsync()
+		{
+			return await _dbContext.Movies.Include(m => m.Genres).ToListAsync();
+
+		}
+
+		public async Task<bool> UpdateAsync(Movie movie)
+		{
+			var movieFromDb = await _dbContext.Movies.Include(m => m.Genres).FirstOrDefaultAsync(x => x.Id == movie.Id);
+
+			movieFromDb.Title = movie.Title;
+			movieFromDb.YearOfRelease = movie.YearOfRelease;
+
+			movie.Genres.Clear();
+			foreach (var genre in movie.Genres)
 			{
-				return Task.FromResult(false);
+				var existingGenre = await _dbContext.Genres.FirstOrDefaultAsync(x => x.Id == genre.Id);
+				if (existingGenre != null)
+				{
+					movieFromDb.Genres.Add(genre);
+				}
+				movieFromDb.Genres.Add(genre);
 			}
 
-			_movies[movieIndex] = movie;
-			return Task.FromResult(true);
+			return await _dbContext.SaveChangesAsync() > 0;
+
 		}
 
-		public Task<bool> DeleteByIdAsync(Guid id)
+		public async Task<bool> DeleteByIdAsync(int id)
 		{
-			var removeCount = _movies.RemoveAll(x => x.Id == id);
-			var movieRemove = removeCount > 0;
-			return Task.FromResult(movieRemove);
+			var movieFromDb = await _dbContext.Movies.Include(m => m.Genres).FirstOrDefaultAsync(x => x.Id == id);
+
+			_dbContext.Movies.Remove(movieFromDb);
+			return await _dbContext.SaveChangesAsync() > 0;
 		}
 
 
 
+		public async Task<bool> ExistsByIdAsync(int id)
+		{
+			return await _dbContext.Movies.FirstOrDefaultAsync(x => x.Id == id) != null;
+		}
 	}
 }

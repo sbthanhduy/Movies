@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Movies.Application.Data;
+using Movies.Application.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +14,15 @@ namespace Movies.Application.Repositories
     {
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
-            services.AddSingleton<IMovieRepository, MovieRepository>();
+            services.AddScoped<IMovieRepository, MovieRepository>();
+            services.AddScoped<IGenreRepository, GenreRepository>();
+            services.AddScoped<IMovieService, MovieService>();
+			return services;
+        }
+
+        public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)
+        {
+            services.AddDbContext<MoviesDbContext>(options => options.UseSqlServer(connectionString));
             return services;
         }
     }

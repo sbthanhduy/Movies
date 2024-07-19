@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Movies.Application.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,6 @@ namespace Movies.Contracts.Requests
 	{
         public required string Title { get; init; }
         public required int YearOfRelease { get; init; }
-        public required IEnumerable<string> Genres { get; init; } = Enumerable.Empty<string>();
-
+        public required IEnumerable<string> Genres { get; init; }
     }
 }
