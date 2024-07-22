@@ -27,26 +27,32 @@ namespace Movies.Application.Repositories
 
 		}
 
-		public async Task<Movie?> GetByIdAsync(int id, CancellationToken token = default)
+		public async Task<Movie?> GetByIdAsync(int id, Guid? userId = default, CancellationToken token = default)
 		{
-			return await _dbContext.Movies.Include(m => m.Genres).FirstOrDefaultAsync(x => x.Id == id, token);
+			return await _dbContext.Movies
+				.Include(m => m.Genres)
+				.FirstOrDefaultAsync(x => x.Id == id, token);
 
 		}
 
-		public async Task<Movie?> GetBySlugAsync(string slug, CancellationToken token = default)
+		public async Task<Movie?> GetBySlugAsync(string slug, Guid? userId = default, CancellationToken token = default)
 		{
-			var movies = await _dbContext.Movies.Include(m => m.Genres).ToListAsync(cancellationToken: token);
+			var movies = await _dbContext.Movies
+				.Include(m => m.Genres)
+				.Include(m => m.Ratings)
+				.ToListAsync(token);
 			return movies.FirstOrDefault(x => x.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase));
-
 		}
 
-		public async Task<IEnumerable<Movie>> GetAllAsync(CancellationToken token = default)
+		public async Task<IEnumerable<Movie>> GetAllAsync(Guid? userId = default, CancellationToken token = default)
 		{
-			return await _dbContext.Movies.Include(m => m.Genres).ToListAsync(token);
+			return await _dbContext.Movies
+				.Include(m => m.Genres)
+				.ToListAsync(token);
 
 		}
 
-		public async Task<bool> UpdateAsync(Movie movie, CancellationToken token = default)
+		public async Task<bool> UpdateAsync(Movie movie, Guid? userId = default, CancellationToken token = default)
 		{
 			var movieFromDb = await _dbContext.Movies.Include(m => m.Genres).FirstOrDefaultAsync(x => x.Id == movie.Id, token);
 
@@ -82,5 +88,7 @@ namespace Movies.Application.Repositories
 		{
 			return await _dbContext.Movies.FirstOrDefaultAsync(x => x.Id == id, token) != null;
 		}
+
+		
 	}
 }

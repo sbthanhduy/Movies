@@ -16,6 +16,8 @@ namespace Movies.Application.Models
 		public required int YearOfRelease { get; set; }
 		public required List<Genre> Genres { get; set; }
 
+		public List<Rating> Ratings { get; set; }
+
 		private string GenerateSlug()
 		{
 			var sluggedTitle = SlugRegex().Replace(Title, string.Empty)

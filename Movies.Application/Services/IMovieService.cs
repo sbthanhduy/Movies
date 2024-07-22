@@ -1,4 +1,5 @@
-﻿using Movies.Application.Models;
+﻿using Movies.Application.DTOs;
+using Movies.Application.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,11 @@ namespace Movies.Application.Services
 	public interface IMovieService
 	{
 		Task<bool> CreateAsync(Movie movie, CancellationToken token = default);
-		Task<Movie?> GetByIdAsync(int id, CancellationToken token = default);
-		Task<Movie?> GetBySlugAsync(string slug, CancellationToken token = default);
-		Task<IEnumerable<Movie>> GetAllAsync(CancellationToken token = default);
-		Task<Movie> UpdateAsync(Movie movie, CancellationToken token = default);
+		Task<MovieDto?> GetByIdAsync(int id, Guid? userId =default, CancellationToken token = default);
+		Task<MovieDto?> GetBySlugAsync(string slug, Guid? userId = default, CancellationToken token = default);
+		Task<IEnumerable<MovieDto>> GetAllAsync(Guid? userId = default, CancellationToken token = default);
+		Task<MovieDto> UpdateAsync(Movie movie, Guid? userId = default, CancellationToken token = default);
 		Task<bool> DeleteByIdAsync(int id, CancellationToken token = default);
+		Task<Genre?> GetGenreByNameAsync(string name);
 	}
 }

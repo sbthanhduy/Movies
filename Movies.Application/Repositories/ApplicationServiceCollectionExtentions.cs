@@ -17,6 +17,8 @@ namespace Movies.Application.Repositories
 		{
 			services.AddSingleton<IMovieRepository, MovieRepository>();
 			services.AddSingleton<IGenreRepository, GenreRepository>();
+			services.AddSingleton<IRatingRepository, RatingRepository>();
+			services.AddSingleton<IRatingService, RatingService>();
 			services.AddSingleton<IMovieService, MovieService>();
 			services.AddValidatorsFromAssemblyContaining<IApplicationMaker>(ServiceLifetime.Singleton);
 			return services;

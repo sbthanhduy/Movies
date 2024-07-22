@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
+using Movies.API.Auth;
 using Movies.API.Mapping;
 using Movies.Application.Models;
 using Movies.Application.Repositories;
@@ -11,7 +12,7 @@ using Movies.Contracts.Responses;
 
 namespace Movies.API.Controllers
 {
-	
+
 	[ApiController]
 	public class MoviesController : ControllerBase
 	{
@@ -24,28 +25,11 @@ namespace Movies.API.Controllers
 			_genreRepository = genreRepository;
 		}
 
-		[HttpPost(ApiEndpoints.Movies.Create)]
-		public async Task<IActionResult> Create([FromBody] CreateMovieRequest request,CancellationToken token)
-		{
-			var movie = new Movie()
-			{
-				Title = request.Title,
-				YearOfRelease = request.YearOfRelease,
-				Genres = new List<Genre>()
-			};
 
-			foreach (var genreName in request.Genres)
-			{
-				var genre = await _genreRepository.GetByNameAsync(genreName);
-				if (genre == null)
-				{
-					genre = new Genre()
-					{
-						Name = genreName
-					};
-				}
-				movie.Genres.Add(genre);
-			}
+		[HttpPost(ApiEndpoints.Movies.Create)]
+		public async Task<IActionResult> Create([FromBody] CreateMovieRequest request, CancellationToken token)
+		{
+			Movie movie = await request.MapToMovie(_movieService.GetGenreByNameAsync);
 
 			await _movieService.CreateAsync(movie, token);
 
@@ -57,9 +41,11 @@ namespace Movies.API.Controllers
 		[HttpGet(ApiEndpoints.Movies.Get)]
 		public async Task<IActionResult> Get([FromRoute] string idOrSlug, CancellationToken token)
 		{
+			var userId = HttpContext.GetUserId();
+
 			var movie = int.TryParse(idOrSlug, out var id) ?
-				await _movieService.GetByIdAsync(id, token) :
-				await _movieService.GetBySlugAsync(idOrSlug, token);
+				await _movieService.GetByIdAsync(id, userId, token) :
+				await _movieService.GetBySlugAsync(idOrSlug, userId, token);
 			if (movie is null)
 			{
 				return NotFound();
@@ -71,7 +57,9 @@ namespace Movies.API.Controllers
 		[HttpGet(ApiEndpoints.Movies.GetAll)]
 		public async Task<IActionResult> GetAll(CancellationToken token)
 		{
-			var movies = await _movieService.GetAllAsync();
+			var userId = HttpContext.GetUserId();
+
+			var movies = await _movieService.GetAllAsync(userId, token);
 			return Ok(movies);
 		}
 
@@ -80,26 +68,11 @@ namespace Movies.API.Controllers
 		public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateMovieRequest request
 			, CancellationToken token)
 		{
-			var movie = new Movie()
-			{
-				Id = id,
-				Title = request.Title,
-				YearOfRelease = request.YearOfRelease,
-				Genres = new List<Genre>()
+			var userId = HttpContext.GetUserId();
 
-			};
+			var movie = await request.MapToMovie(id, _movieService.GetGenreByNameAsync);
 
-			foreach (var genreName in request.Genres)
-			{
-				var genre = await _genreRepository.GetByNameAsync(genreName);
-				if(genre == null)
-				{
-					genre = new Genre() { Name = genreName };
-				}
-				movie.Genres.Add(genre);
-			}
-
-			var updatedMovie = await _movieService.UpdateAsync(movie, token);
+			var updatedMovie = await _movieService.UpdateAsync(movie, userId, token);
 			if (updatedMovie == null)
 			{
 				return NotFound();

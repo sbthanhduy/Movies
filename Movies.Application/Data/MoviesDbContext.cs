@@ -17,6 +17,7 @@ namespace Movies.Application.Data
 
 		public DbSet<Movie> Movies { get; set; }
 		public DbSet<Genre> Genres { get; set; }
+		public DbSet<Rating> Ratings { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -25,6 +26,13 @@ namespace Movies.Application.Data
 			modelBuilder.Entity<Movie>()
 				.HasMany(e => e.Genres)
 				.WithMany(e => e.Movies);
+
+			modelBuilder.Entity<Rating>()
+				.HasKey(e => new { e.UserId, e.MovieId });
+			modelBuilder.Entity<Rating>()
+				.HasOne(e => e.Movie)
+				.WithMany(e => e.Ratings)
+				.HasForeignKey(e => e.MovieId);
 		}
 
 	}
